@@ -8,16 +8,16 @@
 
 #include <stdio.h>
 
-#include <esp_system.h>
-#include <esp_types.h>
-#include <esp_wifi.h>
-#include <esp_log.h>
-#include <freertos/FreeRTOS.h>
-#include <freertos/queue.h>
-#include <freertos/task.h>
+#include "esp_system.h"
+#include "esp_types.h"
+#include "esp_wifi.h"
+#include "esp_log.h"
+#include "freertos/FreeRTOS.h"
+#include "freertos/queue.h"
+#include "freertos/task.h"
 
-#include <driver/uart.h>
-#include <driver/gpio.h>
+#include "driver/uart.h"
+#include "driver/gpio.h"
 
 #include "brzo_i2c.h"
 #include "hdc1080.h"
