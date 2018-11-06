@@ -1,10 +1,10 @@
 /*
-   This example code is in the Public Domain (or CC0 licensed, at your option.)
+ This example code is in the Public Domain (or CC0 licensed, at your option.)
 
-   Unless required by applicable law or agreed to in writing, this
-   software is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR
-   CONDITIONS OF ANY KIND, either express or implied.
-*/
+ Unless required by applicable law or agreed to in writing, this
+ software is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR
+ CONDITIONS OF ANY KIND, either express or implied.
+ */
 
 #include <stdio.h>
 
@@ -22,7 +22,6 @@
 #include "brzo_i2c.h"
 #include "hdc1080.h"
 #include "dht.h"
-
 
 #define HDC1080_DEF_INTERVAL_MS 10000
 
@@ -66,13 +65,9 @@ void hdc1080_task(void *params)
 		vTaskDelay(HDC1080_DEF_INTERVAL_MS / portTICK_PERIOD_MS);
 		if (hdc1080_get_raw(hdc1080_1, &(buff.raw)))
 		{
-			ESP_LOGD(
-					__FUNCTION__,
+			ESP_LOGD(__FUNCTION__,
 					"[HDC1080] Raw data read: 0x%02x 0x%02x 0x%02x 0x%02x",
-					buff.b[0],
-					buff.b[1],
-					buff.b[2],
-					buff.b[3]);
+					buff.b[0], buff.b[1], buff.b[2], buff.b[3]);
 			/*
 			 * Temperature value
 			 * Care about byte order!!!
@@ -124,8 +119,7 @@ void hdc1080_task(void *params)
 		 * Start I2C transaction
 		 */
 		taskENTER_CRITICAL();
-		brzo_i2c_start_transaction(
-				i2c_bus_1,
+		brzo_i2c_start_transaction(i2c_bus_1,
 				I2C_ADDRESS_BH1750,
 				I2C_SPEED_BH1750);
 		brzo_i2c_ack_polling(i2c_bus_1, 100);
@@ -150,9 +144,10 @@ void hdc1080_task(void *params)
 			/*
 			 * Sleep 100 us for device up
 			 */
-			vTaskDelay (100);
+			vTaskDelay(100);
 
-			ESP_LOGD(__FUNCTION__, "[BH1750] Sensor woken up, send measure command");
+			ESP_LOGD(__FUNCTION__,
+					"[BH1750] Sensor woken up, send measure command");
 
 			/*
 			 * [BH1750] Set mode
@@ -161,8 +156,7 @@ void hdc1080_task(void *params)
 			 * Start I2C transaction
 			 */
 			taskENTER_CRITICAL();
-			brzo_i2c_start_transaction(
-					i2c_bus_1,
+			brzo_i2c_start_transaction(i2c_bus_1,
 					I2C_ADDRESS_BH1750,
 					I2C_SPEED_BH1750);
 			brzo_i2c_ack_polling(i2c_bus_1, 100);
@@ -189,9 +183,10 @@ void hdc1080_task(void *params)
 				/*
 				 * Wait for measure delay time
 				 */
-				vTaskDelay (LIGHT_MEASURE_DELAY_MS/portTICK_RATE_MS);
+				vTaskDelay(LIGHT_MEASURE_DELAY_MS / portTICK_RATE_MS);
 
-				ESP_LOGD(__FUNCTION__, "[BH1750] Measure delay done, read light value");
+				ESP_LOGD(__FUNCTION__,
+						"[BH1750] Measure delay done, read light value");
 
 				/*
 				 * [BH1750] Set mode
@@ -201,8 +196,7 @@ void hdc1080_task(void *params)
 				 * Start I2C transaction
 				 */
 				taskENTER_CRITICAL();
-				brzo_i2c_start_transaction(
-						i2c_bus_1,
+				brzo_i2c_start_transaction(i2c_bus_1,
 						I2C_ADDRESS_BH1750,
 						I2C_SPEED_BH1750);
 				brzo_i2c_ack_polling(i2c_bus_1, 100);
@@ -226,21 +220,25 @@ void hdc1080_task(void *params)
 				{
 					light = (buff.b[0] * 256 + buff.b[1]) / 1.2;
 					sprintf(str, "%.02f", light);
-					ESP_LOGI(__FUNCTION__, "[BH1750] Sensor read = %s lux", str);
+					ESP_LOGI(__FUNCTION__, "[BH1750] Sensor read = %s lux",
+							str);
 				}
 				else
 				{
-					ESP_LOGE(__FUNCTION__, "[BH1750] Sensor read error 0x%02x", result);
+					ESP_LOGE(__FUNCTION__, "[BH1750] Sensor read error 0x%02x",
+							result);
 				}
 			}
 			else
 			{
-				ESP_LOGE(__FUNCTION__, "[BH1750] Send command error 0x%02x", result);
+				ESP_LOGE(__FUNCTION__, "[BH1750] Send command error 0x%02x",
+						result);
 			}
 		}
 		else
 		{
-			ESP_LOGE(__FUNCTION__, "[BH1750] Sensor wake up error 0x%02x", result);
+			ESP_LOGE(__FUNCTION__, "[BH1750] Sensor wake up error 0x%02x",
+					result);
 		}
 	}
 }
@@ -250,28 +248,29 @@ void hdc1080_task(void *params)
  * Description  : entry of user application, init user function here
  * Parameters   : none
  * Returns      : none
-*******************************************************************************/
+ *******************************************************************************/
 void app_main(void)
 {
- 	/*
+	/*
 	 * Disable WiFi
 	 */
 	esp_wifi_stop();
 	esp_wifi_deinit();
 
-//	/*
-//	 * Enable debug output to UART1
-//	 */
-//	uart_config_t uart_config;
-//	uart_config.baud_rate = 74880;
-//	uart_config.data_bits = UART_DATA_8_BITS;
-//	uart_config.parity = UART_PARITY_DISABLE;
-//	uart_config.stop_bits = UART_STOP_BITS_1;
-//	uart_config.flow_ctrl = UART_HW_FLOWCTRL_DISABLE;
-//	uart_config.rx_flow_ctrl_thresh = 120;
-//	ESP_ERROR_CHECK(uart_param_config(UART_NUM_0, &uart_config));
+	//	/*
+	//	 * Enable debug output to UART1
+	//	 */
+	//	uart_config_t uart_config;
+	//	uart_config.baud_rate = 74880;
+	//	uart_config.data_bits = UART_DATA_8_BITS;
+	//	uart_config.parity = UART_PARITY_DISABLE;
+	//	uart_config.stop_bits = UART_STOP_BITS_1;
+	//	uart_config.flow_ctrl = UART_HW_FLOWCTRL_DISABLE;
+	//	uart_config.rx_flow_ctrl_thresh = 120;
+	//	ESP_ERROR_CHECK(uart_param_config(UART_NUM_0, &uart_config));
 
-	ESP_LOGI(__FUNCTION__, "=== Firmware SDK version: %s, CPU clock: %d", esp_get_idf_version(), system_get_cpu_freq());
+	ESP_LOGI(__FUNCTION__, "=== Firmware SDK version: %s, CPU clock: %d",
+			esp_get_idf_version(), system_get_cpu_freq());
 	/*
 	 * [I2C] Init bus instance (SDA = GPIO4, SCL = GPIO5)
 	 */
@@ -285,7 +284,8 @@ void app_main(void)
 			brzo_i2c_start_transaction(i2c_bus_1, (uint8_t) i2c_address, 400);
 			brzo_i2c_ack_polling(i2c_bus_1, 500);
 			if (brzo_i2c_end_transaction(i2c_bus_1) == 0)
-				ESP_LOGI(__FUNCTION__, "[I2C] Device present: 0x%02x", i2c_address);
+				ESP_LOGI(__FUNCTION__, "[I2C] Device present: 0x%02x",
+						i2c_address);
 		}
 		ESP_LOGI(__FUNCTION__, "[I2C] Scanning bus completed");
 		/*
@@ -305,8 +305,8 @@ void app_main(void)
 			/*
 			 * TODO: Resolve int64_t format vatiable
 			 */
-//			ESP_LOGI(__FUNCTION__, "[HDC1080] Serial 0x%010x\n",
-//					hdc1080_get_serial(hdc1080_1));
+			//			ESP_LOGI(__FUNCTION__, "[HDC1080] Serial 0x%010x\n",
+			//					hdc1080_get_serial(hdc1080_1));
 		}
 
 		/*
@@ -350,8 +350,8 @@ void app_main(void)
 			ESP_LOGI(__FUNCTION__, "[HDC1080] Sensor initialized");
 
 		}
-//    	else
-//    		is_hdc1080_present = false;
+		//    	else
+		//    		is_hdc1080_present = false;
 	}
 
 	/*
@@ -366,14 +366,9 @@ void app_main(void)
 	static uint8_t ucParameterToPass;
 	TaskHandle_t xHandle = NULL;
 
-	xTaskCreate(
-			hdc1080_task,
-			(char *) "HDC1080_Task",
-			2048,
-			&ucParameterToPass,
-			tskIDLE_PRIORITY,
-			&xHandle);
-	if( xHandle == NULL )
+	xTaskCreate(hdc1080_task, (char *) "HDC1080_Task", 2048, &ucParameterToPass,
+			tskIDLE_PRIORITY, &xHandle);
+	if (xHandle == NULL)
 	{
 		ESP_LOGI(__FUNCTION__, "Error when starting HDC1080 task");
 	}
