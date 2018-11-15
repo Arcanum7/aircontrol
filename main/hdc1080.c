@@ -8,13 +8,13 @@
  *      Author: Michael Kolomiets <michael.kolomiets@gmail.com>
  */
 
-#include "brzo_i2c.h"
 #include <esp_system.h>
 #include <esp_libc.h>
 #include <esp_log.h>
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
 
+#include "brzo_i2c.h"
 #include "hdc1080.h"
 
 /*
@@ -197,7 +197,7 @@ bool ICACHE_FLASH_ATTR hdc1080_set_config(h_hdc1080 sensor, uint16_t data)
 		return false;
 
 	bool result = hdc1080_set_reg(sensor,
-	HDC1080_REG_CONFIGURATION, (data & HDC1080_REG_CONFIG_WRITE_MASK));
+	HDC1080_REG_CONTROL, (data & HDC1080_REG_CONFIG_WRITE_MASK));
 	return result;
 }
 

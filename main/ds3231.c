@@ -15,9 +15,7 @@
  */
 
 #include "ds3231.h"
-#include "espressif/esp_common.h"
-//#include "espressif/sdk_private.h"
-//#include "esp8266.h"
+#include "esp_system.h"
 
 #include "brzo_i2c.h"
 
@@ -179,7 +177,7 @@ inline bool ds3231_clearAlarmFlags(uint8_t alarms)
 
 inline bool ds3231_enableAlarmInts(uint8_t alarms)
 {
-    return ds3231_setFlag(DS3231_ADDR_CONTROL, DS3231_CTRL_ALARM_INTS | alarms, DS3231_SET);
+    return ds3231_setFlag(DS3231_ADDR_CONTROL, DS3231_CONTROL_INTCN | alarms, DS3231_SET);
 }
 
 inline bool ds3231_disableAlarmInts(uint8_t alarms)
@@ -202,12 +200,12 @@ inline bool ds3231_disable32khz()
 
 inline bool ds3231_enableSquarewave()
 {
-    return ds3231_setFlag(DS3231_ADDR_CONTROL, DS3231_CTRL_ALARM_INTS, DS3231_CLEAR);
+    return ds3231_setFlag(DS3231_ADDR_CONTROL, DS3231_CONTROL_INTCN, DS3231_CLEAR);
 }
 
 inline bool ds3231_disableSquarewave()
 {
-    return ds3231_setFlag(DS3231_ADDR_CONTROL, DS3231_CTRL_ALARM_INTS, DS3231_SET);
+    return ds3231_setFlag(DS3231_ADDR_CONTROL, DS3231_CONTROL_INTCN, DS3231_SET);
 }
 
 bool ds3231_setSquarewaveFreq(uint8_t freq)
@@ -216,7 +214,7 @@ bool ds3231_setSquarewaveFreq(uint8_t freq)
 
     if (ds3231_getFlag(DS3231_ADDR_CONTROL, 0xff, &flag)) {
         /* clear current rate */
-        flag &= ~DS3231_CTRL_SQWAVE_8192HZ;
+        flag &= ~DS3231_CTRL_SQW_8192HZ;
         /* set new rate */
         flag |= freq;
 

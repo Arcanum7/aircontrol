@@ -21,6 +21,8 @@
 #include <stdbool.h>
 #include <time.h>
 
+#include "brzo_i2c.h"
+
 #ifdef	__cplusplus
 extern "C"
 {
@@ -42,7 +44,71 @@ extern "C"
 #define DS3231_I2C_DEF_ACK_TIMEOUT	500
 
 /*
- * Status Register (0Fh) bits
+ * Register address: Time value base
+ */
+#define DS3231_REG_TIME			0x00
+/*
+ * Register address: Alarm 1 base
+ */
+#define DS3231_REG_ALARM1		0x07
+/*
+ * Register address: Alarm 2 base
+ */
+#define DS3231_REG_ALARM2		0x0b
+/*
+ * Register address: Control
+ */
+#define DS3231_REG_CONTROL		0x0e
+/*
+ * Register address: Status
+ */
+#define DS3231_REG_STATUS		0x0f
+/*
+ * Register address: Aging offset
+ */
+#define DS3231_ADDR_AGING		0x10
+/*
+ * Register address: Temperature base
+ */
+#define DS3231_ADDR_TEMPERATURE	0x11
+
+/*
+ * Control Register (0x0E) bits
+ */
+/*
+ * Control: Enable Oscillator (EOSC)
+ */
+#define DS3231_CONTROL_EOSC			0x80
+/*
+ * Control: Battery-Backed Square-Wave Enable (BBSQW)
+ */
+#define DS3231_CONTROL_BBSQW		0x40
+/*
+ * Control: Battery-Backed Square-Wave Enable (BBSQW)
+ */
+#define DS3231_CONTROL_CONV			0x20
+/*
+ * Control: Square-Wave Rate Select (RS2 and RS1)
+ */
+#define DS3231_CONTROL_SQW_1HZ		0x00
+#define DS3231_CONTROL_SQW_1024HZ	0x08
+#define DS3231_CONTROL_SQW_4096HZ	0x10
+#define DS3231_CONTROL_SQW_8192HZ	0x18
+/*
+ * Control: Interrupt Control (INTCN)
+ */
+#define DS3231_CONTROL_INTCN		0x04
+/*
+ * Control: Alarm 2 Interrupt Enable (A2IE)
+ */
+#define DS3231_CONTROL_A2IE			0x02
+/*
+ * Control: Alarm 1 Interrupt Enable (A1IE)
+ */
+#define DS3231_CONTROL_A1IE			0x01
+
+/*
+ * Status Register (0x0F) bits
  */
 /*
  * Status: Oscillator Stop Flag
@@ -65,32 +131,14 @@ extern "C"
  */
 #define DS3231_STATUS_A1F       	0x01
 
-#define DS3231_CTRL_OSCILLATOR    0x80
-#define DS3231_CTRL_SQUAREWAVE_BB 0x40
-#define DS3231_CTRL_TEMPCONV      0x20
-#define DS3231_CTRL_SQWAVE_4096HZ 0x10
-#define DS3231_CTRL_SQWAVE_1024HZ 0x08
-#define DS3231_CTRL_SQWAVE_8192HZ 0x18
-#define DS3231_CTRL_SQWAVE_1HZ    0x00
-#define DS3231_CTRL_ALARM_INTS    0x04
-#define DS3231_CTRL_ALARM2_INT    0x02
-#define DS3231_CTRL_ALARM1_INT    0x01
+#define DS3231_ALARM_AMPM_MASK		0x20
+#define DS3231_ALARM_DAY			0x40
+#define DS3231_ALARM_NOTSET			0x80
 
-#define DS3231_ALARM_WDAY  		  0x40
-#define DS3231_ALARM_NOTSET       0x80
-
-#define DS3231_ADDR_TIME          0x00
-#define DS3231_ADDR_ALARM1        0x07
-#define DS3231_ADDR_ALARM2        0x0b
-#define DS3231_ADDR_CONTROL       0x0e
-#define DS3231_ADDR_STATUS        0x0f
-#define DS3231_ADDR_AGING         0x10
-#define DS3231_ADDR_TEMP          0x11
-
-#define DS3231_12HOUR_FLAG        0x40
-#define DS3231_12HOUR_MASK        0x1f
-#define DS3231_PM_FLAG            0x20
-#define DS3231_MONTH_MASK         0x1f
+#define DS3231_12HOUR_FLAG			0x40
+#define DS3231_12HOUR_MASK			0x1f
+#define DS3231_PM_FLAG				0x20
+#define DS3231_MONTH_MASK			0x1f
 
 enum
 {
@@ -130,6 +178,34 @@ enum
  * Sensor instance handler
  */
 typedef void * h_ds3231;
+
+/**
+ * @brief      Setup instance of DS3231 sensor I2C slave device
+ *
+ * @param [in] i2c_bus
+ *             I2C bus instance handler
+ * @param [in] i2c_address
+ *             I2C address of device, 7 bit
+ * @param [in] i2c_frequency
+ *             I2C clock frequency in kHz
+ * @param [in] i2c_ack_timeout
+ *             I2C slave ACK wait timeout in usec
+ *
+ * @return     ds3231_t, NULL:indicates failure,
+ *             valid pointer value indicates success.
+ */
+h_ds3231 ds3231_setup(h_brzo_i2c_bus i2c_bus, uint8_t i2c_address,
+		uint16_t i2c_frequency, uint16_t i2c_ack_timeout);
+
+/**
+ * @brief      Release instance of DS3231 sensor I2C slave device
+ *
+ * @param [in] sensor
+ *             Handler of DS sensor I2C slave device instance
+ *
+ * @return     void.
+ */
+void ds3231_free(h_ds3231 sensor);
 
 /* Set the time on the rtc
  * timezone agnostic, pass whatever you like
