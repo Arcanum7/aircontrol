@@ -11,6 +11,8 @@
 #ifndef INCLUDE_HDC1080_H_
 #define INCLUDE_HDC1080_H_
 
+#include <stdbool.h>
+
 #include "esp_system.h"
 #include "brzo_i2c.h"
 

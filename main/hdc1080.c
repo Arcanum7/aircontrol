@@ -8,11 +8,15 @@
  *      Author: Michael Kolomiets <michael.kolomiets@gmail.com>
  */
 
-#include <esp_system.h>
-#include <esp_libc.h>
-#include <esp_log.h>
-#include <freertos/FreeRTOS.h>
-#include <freertos/task.h>
+#include <stddef.h>
+#include <stdbool.h>
+
+#include "esp_system.h"
+#include "esp_attr.h"
+#include "esp_libc.h"
+#include "esp_log.h"
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
 
 #include "brzo_i2c.h"
 #include "hdc1080.h"

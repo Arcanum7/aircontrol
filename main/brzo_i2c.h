@@ -65,6 +65,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef _BRZO_I2C_h
 #define _BRZO_I2C_h
 
+#include <stdbool.h>
 #include <esp_types.h>
 
 #ifdef __cplusplus

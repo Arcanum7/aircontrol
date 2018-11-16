@@ -31,46 +31,46 @@ extern "C"
 /*
  * [I2C] Default address for DS3231
  */
-#define DS3231_I2C_DEF_ADDRESS		0x68
+#define DS3231_I2C_DEF_ADDRESS              0x68
 
 /*
  * [I2C] Bus speed in kbps for HDC1080
  */
-#define DS3231_I2C_DEF_SPEED 		100
+#define DS3231_I2C_DEF_SPEED                100
 
 /*
  * [I2C] Default ACS pooling timeout in uS for HDC1080
  */
-#define DS3231_I2C_DEF_ACK_TIMEOUT	500
+#define DS3231_I2C_DEF_ACK_TIMEOUT          500
 
 /*
  * Register address: Time value base
  */
-#define DS3231_REG_TIME			0x00
+#define DS3231_REG_TIME                     0x00
 /*
  * Register address: Alarm 1 base
  */
-#define DS3231_REG_ALARM1		0x07
+#define DS3231_REG_ALARM1                   0x07
 /*
  * Register address: Alarm 2 base
  */
-#define DS3231_REG_ALARM2		0x0b
+#define DS3231_REG_ALARM2                   0x0b
 /*
  * Register address: Control
  */
-#define DS3231_REG_CONTROL		0x0e
+#define DS3231_REG_CONTROL                  0x0e
 /*
  * Register address: Status
  */
-#define DS3231_REG_STATUS		0x0f
+#define DS3231_REG_STATUS                   0x0f
 /*
  * Register address: Aging offset
  */
-#define DS3231_ADDR_AGING		0x10
+#define DS3231_REG_AGING                    0x10
 /*
  * Register address: Temperature base
  */
-#define DS3231_ADDR_TEMPERATURE	0x11
+#define DS3231_REG_TEMPERATURE              0x11
 
 /*
  * Control Register (0x0E) bits
@@ -78,34 +78,34 @@ extern "C"
 /*
  * Control: Enable Oscillator (EOSC)
  */
-#define DS3231_CONTROL_EOSC			0x80
+#define DS3231_CONTROL_EOSC                 0x80
 /*
  * Control: Battery-Backed Square-Wave Enable (BBSQW)
  */
-#define DS3231_CONTROL_BBSQW		0x40
+#define DS3231_CONTROL_BBSQW                0x40
 /*
  * Control: Battery-Backed Square-Wave Enable (BBSQW)
  */
-#define DS3231_CONTROL_CONV			0x20
+#define DS3231_CONTROL_CONV                 0x20
 /*
  * Control: Square-Wave Rate Select (RS2 and RS1)
  */
-#define DS3231_CONTROL_SQW_1HZ		0x00
-#define DS3231_CONTROL_SQW_1024HZ	0x08
-#define DS3231_CONTROL_SQW_4096HZ	0x10
-#define DS3231_CONTROL_SQW_8192HZ	0x18
+#define DS3231_CONTROL_SQW_1HZ              0x00
+#define DS3231_CONTROL_SQW_1024HZ           0x08
+#define DS3231_CONTROL_SQW_4096HZ           0x10
+#define DS3231_CONTROL_SQW_8192HZ           0x18
 /*
  * Control: Interrupt Control (INTCN)
  */
-#define DS3231_CONTROL_INTCN		0x04
+#define DS3231_CONTROL_INTCN                0x04
 /*
  * Control: Alarm 2 Interrupt Enable (A2IE)
  */
-#define DS3231_CONTROL_A2IE			0x02
+#define DS3231_CONTROL_A2IE                 0x02
 /*
  * Control: Alarm 1 Interrupt Enable (A1IE)
  */
-#define DS3231_CONTROL_A1IE			0x01
+#define DS3231_CONTROL_A1IE                 0x01
 
 /*
  * Status Register (0x0F) bits
@@ -113,46 +113,41 @@ extern "C"
 /*
  * Status: Oscillator Stop Flag
  */
-#define DS3231_STATUS_OSF			0x80
+#define DS3231_STATUS_OSF                   0x80
 /*
  * Status: Enable 32kHz Output
  */
-#define DS3231_STATUS_E32KHZ		0x08
+#define DS3231_STATUS_E32KHZ                0x08
 /*
  * Status: Busy
  */
-#define DS3231_STATUS_BSY			0x04
+#define DS3231_STATUS_BSY                   0x04
 /*
  * Status: Alarm 2 Flag
  */
-#define DS3231_STATUS_A2F       	0x02
+#define DS3231_STATUS_A2F                   0x02
 /*
  * Status: Alarm 1 Flag
  */
-#define DS3231_STATUS_A1F       	0x01
+#define DS3231_STATUS_A1F                   0x01
 
-#define DS3231_ALARM_AMPM_MASK		0x20
-#define DS3231_ALARM_DAY			0x40
-#define DS3231_ALARM_NOTSET			0x80
+#define DS3231_PM_FLAG                    0x20
+#define DS3231_ALARM_AMPM_MASK              0x20
+#define DS3231_ALARM_WEEKDAY_FLAG           0x40
+#define DS3231_ALARM_NOTSET_FLAG            0x80
 
-#define DS3231_12HOUR_FLAG			0x40
-#define DS3231_12HOUR_MASK			0x1f
-#define DS3231_PM_FLAG				0x20
-#define DS3231_MONTH_MASK			0x1f
+#define DS3231_12HOUR_FLAG                  0x40
+#define DS3231_12HOUR_MASK                  0x1f
+#define DS3231_MONTH_MASK                   0x1f
 
 enum
 {
-	DS3231_SET = 0,
-	DS3231_CLEAR,
-	DS3231_REPLACE
+	DS3231_SET = 0, DS3231_CLEAR, DS3231_REPLACE
 };
 
 enum
 {
-	DS3231_ALARM_NONE = 0,
-	DS3231_ALARM_1,
-	DS3231_ALARM_2,
-	DS3231_ALARM_BOTH
+	DS3231_ALARM_NONE = 0, DS3231_ALARM_1, DS3231_ALARM_2, DS3231_ALARM_BOTH
 };
 
 enum
@@ -180,7 +175,7 @@ enum
 typedef void * h_ds3231;
 
 /**
- * @brief      Setup instance of DS3231 sensor I2C slave device
+ * @brief      Setup instance of DS3231 device I2C slave device
  *
  * @param [in] i2c_bus
  *             I2C bus instance handler
@@ -198,21 +193,45 @@ h_ds3231 ds3231_setup(h_brzo_i2c_bus i2c_bus, uint8_t i2c_address,
 		uint16_t i2c_frequency, uint16_t i2c_ack_timeout);
 
 /**
- * @brief      Release instance of DS3231 sensor I2C slave device
+ * @brief      Release instance of DS3231 device I2C slave device
  *
- * @param [in] sensor
- *             Handler of DS sensor I2C slave device instance
+ * @param [in] device
+ *             Handler of DS3231 RTC I2C slave device instance
  *
  * @return     void.
  */
-void ds3231_free(h_ds3231 sensor);
+void ds3231_free(h_ds3231 device);
 
-/* Set the time on the rtc
- * timezone agnostic, pass whatever you like
- * I suggest using GMT and applying timezone and DST when read back
+/**
+ * @brief       Get the time from the RTC, populates a supplied tm structure
+ *
+ * @param  [in] device
+ *              Handler of DS3231 RTC I2C slave device instance
+ * @param [out] time
+ *              Pointer to tm structure
+ *
+ * @return      TRUE if read success, FALSE if read fails.
+ */
+bool ds3231_get_time(h_ds3231 device, struct tm *time);
+
+/*
  * returns true to indicate success
  */
-bool ds3231_set_time(struct tm *time);
+/**
+ * @brief       Set the time on the DS3231 RTC
+ *
+ *              timezone agnostic, pass whatever you like
+ *              I suggest using GMT and applying timezone and
+ *              DST when read back
+ *
+ * @param  [in] device
+ *              Handler of DS3231 RTC I2C slave device instance
+ * @param [out] time
+ *              Pointer to tm structure
+ *
+ * @return      TRUE if read success, FALSE if read fails.
+ */
+bool ds3231_set_time(h_ds3231 device, struct tm *time);
 
 /* Set alarms
  * alarm1 works with seconds, minutes, hours and day of week/month, or fires every second
@@ -225,8 +244,8 @@ bool ds3231_set_time(struct tm *time);
  * if you want to enable interrupts for the alarms you need to do that separately
  * returns true to indicate success
  */
-bool ds3231_set_alarm(uint8_t alarms, struct tm *time1, uint8_t option1,
-		struct tm *time2, uint8_t option2);
+bool ds3231_set_alarm(h_ds3231 device, uint8_t alarms, struct tm *time1,
+		uint8_t option1, struct tm *time2, uint8_t option2);
 
 /* Check if oscillator has previously stopped, e.g. no power/battery or disabled
  * sets flag to true if there has been a stop
@@ -307,12 +326,6 @@ bool ds3231_getTempInteger(int8_t *temp);
  * returns true to indicate success
  */
 bool ds3231_getTempFloat(float *temp);
-
-/* Get the time from the rtc, populates a supplied tm struct
- * returns true to indicate success
- */
-bool ds3231_getTime(struct tm *time);
-void ds3231_Init(uint8_t scl, uint8_t sda);
 
 #ifdef	__cplusplus
 }
