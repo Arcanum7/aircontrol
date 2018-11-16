@@ -3,14 +3,14 @@ environment/project/cdt.managedbuild.toolchain.gnu.cross.base.1670764805/BATCH_B
 environment/project/cdt.managedbuild.toolchain.gnu.cross.base.1670764805/BATCH_BUILD/operation=append
 environment/project/cdt.managedbuild.toolchain.gnu.cross.base.1670764805/BATCH_BUILD/value=1
 environment/project/cdt.managedbuild.toolchain.gnu.cross.base.1670764805/ESP8266_HOME/delimiter=\:
-environment/project/cdt.managedbuild.toolchain.gnu.cross.base.1670764805/ESP8266_HOME/operation=append
+environment/project/cdt.managedbuild.toolchain.gnu.cross.base.1670764805/ESP8266_HOME/operation=replace
 environment/project/cdt.managedbuild.toolchain.gnu.cross.base.1670764805/ESP8266_HOME/value=${HOME}/Projects/ESP/ESP8266
 environment/project/cdt.managedbuild.toolchain.gnu.cross.base.1670764805/IDF_PATH/delimiter=\:
 environment/project/cdt.managedbuild.toolchain.gnu.cross.base.1670764805/IDF_PATH/operation=replace
 environment/project/cdt.managedbuild.toolchain.gnu.cross.base.1670764805/IDF_PATH/value=${ESP8266_HOME}/ESP8266_RTOS_SDK
 environment/project/cdt.managedbuild.toolchain.gnu.cross.base.1670764805/PATH/delimiter=\:
 environment/project/cdt.managedbuild.toolchain.gnu.cross.base.1670764805/PATH/operation=replace
-environment/project/cdt.managedbuild.toolchain.gnu.cross.base.1670764805/PATH/value=/bin\:/usr/share/Modules/bin\:/usr/local/bin\:/usr/local/sbin\:/usr/bin\:/usr/sbin\:/home/mmike/Projects/ESP/ESP8266/xtensa-lx106-elf/bin\:/home/mmike/Projects/ESP/ESP32/xtensa-esp32-elf/bin\:/home/mmike/.local/bin\:/home/mmike/bin
+environment/project/cdt.managedbuild.toolchain.gnu.cross.base.1670764805/PATH/value=/bin\:/usr/share/Modules/bin\:/usr/local/bin\:/usr/local/sbin\:/usr/bin\:/usr/sbin\:${ESP8266_HOME}/xtensa-lx106-elf/bin\:/home/mmike/Projects/ESP/ESP32/xtensa-esp32-elf/bin\:/home/mmike/.local/bin\:/home/mmike/bin
 environment/project/cdt.managedbuild.toolchain.gnu.cross.base.1670764805/append=true
 environment/project/cdt.managedbuild.toolchain.gnu.cross.base.1670764805/appendContributed=true
 org.eclipse.cdt.core.formatter.alignment_for_arguments_in_method_invocation=16
