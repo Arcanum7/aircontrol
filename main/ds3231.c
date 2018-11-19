@@ -6,10 +6,15 @@
  * MIT Licensed as described in the file LICENSE
 */
 
-/*
- * Source adapted to ESP8266_RTOS_SDK v2.x.x and brzo_i2c library
+/**
+ * Driver for DS3231 high precision RTC module
+ * Source adapted to ESP8266_RTOS_SDK v3.0
+ * Used modified brzo_i2c driver library to work with I2C bus
  *
  * Copyright (C) 2018 Michael Kolomiets <michael.kolomiets@gmail.com>
+ *
+ * Reference documentation
+ * https://datasheets.maximintegrated.com/en/ds/DS3231.pdf
  *
  * Original license in the file LICENSE.ds3231
  */
@@ -38,16 +43,48 @@ typedef struct
 /*
  * Forward function declarations
  */
+
+/*
+ * Convert binary coded decimal to normal decimal
+ */
 uint8_t bcd_to_dec(uint8_t bcd);
+
+/*
+ * Convert normal decimal to binary coded decimal
+ */
 uint8_t dec_to_bcd(uint8_t dec);
+
+/* Read a number of bytes from the RTC over i2c
+ * returns true to indicate success
+ */
 bool ds3231_reg_get(ds3231_device_t * device, uint8_t reg,
 		uint8_t *pData, uint32_t length);
+
+/* Send a number of bytes to the RTC over i2c
+ * returns true to indicate success
+ */
 bool ds3231_reg_set(ds3231_device_t * device, uint8_t reg,
 		uint8_t * pData, uint32_t length);
+
+/* Get a byte containing just the requested bits
+ * pass the register address to read, a mask to apply to the register and
+ * an uint* for the output
+ * you can test this value directly as true/false for specific bit mask
+ * of use a mask of 0xff to just return the whole register byte
+ * returns true to indicate success
+ */
 bool ds3231_flag_get(ds3231_device_t * device, uint8_t reg,
 		uint8_t mask, uint8_t *flag);
+
+/* Set/clear bits in a byte register, or replace the byte altogether
+ * pass the register address to modify, a byte to replace the existing
+ * value with or containing the bits to set/clear and one of
+ * DS3231_SET/DS3231_CLEAR/DS3231_REPLACE
+ * returns true to indicate success
+ */
 bool ds3231_flag_set(ds3231_device_t * device, uint8_t reg,
 		uint8_t bits, uint8_t mode);
+
 
 h_ds3231 ICACHE_FLASH_ATTR ds3231_setup(h_brzo_i2c_bus i2c_bus,
 		uint8_t i2c_address, uint16_t i2c_frequency, uint16_t i2c_ack_timeout)
@@ -94,18 +131,18 @@ bool ds3231_get_time(h_ds3231 device, struct tm *time)
     /* convert to unix time structure */
     time->tm_sec = bcd_to_dec(data[0]);
     time->tm_min = bcd_to_dec(data[1]);
-    if (data[2] & DS3231_12HOUR_FLAG) {
+    if (data[2] & DS3231_TIME_12HOUR_FLAG) {
         /* 12H */
-        time->tm_hour = bcd_to_dec(data[2] & DS3231_12HOUR_MASK) - 1;
+        time->tm_hour = bcd_to_dec(data[2] & DS3231_TIME_12HOUR_MASK) - 1;
         /* AM/PM? */
-        if (data[2] & DS3231_PM_FLAG) time->tm_hour += 12;
+        if (data[2] & DS3231_TIME_PM_FLAG) time->tm_hour += 12;
     } else {
         /* 24H */
         time->tm_hour = bcd_to_dec(data[2]);
     }
     time->tm_wday = bcd_to_dec(data[3]) - 1;
     time->tm_mday = bcd_to_dec(data[4]);
-    time->tm_mon  = bcd_to_dec(data[5] & DS3231_MONTH_MASK) - 1;
+    time->tm_mon  = bcd_to_dec(data[5] & DS3231_TIME_MONTH_MASK) - 1;
     time->tm_year = bcd_to_dec(data[6]) + 100;
     time->tm_isdst = 0;
 
@@ -116,7 +153,7 @@ bool ds3231_get_time(h_ds3231 device, struct tm *time)
 
 }
 
-bool ICACHE_FLASH_ATTR ds3231_set_time(h_ds3231 device, struct tm *time)
+bool ICACHE_FLASH_ATTR ds3231_set_time(h_ds3231 device, struct tm *time, bool clock_12hour)
 {
     uint8_t data[7];
 
@@ -130,7 +167,7 @@ bool ICACHE_FLASH_ATTR ds3231_set_time(h_ds3231 device, struct tm *time)
      */
     data[0] = dec_to_bcd(time->tm_sec);
     data[1] = dec_to_bcd(time->tm_min);
-    data[2] = dec_to_bcd(time->tm_hour);
+   	data[2] = dec_to_bcd(time->tm_hour);
     data[3] = dec_to_bcd(time->tm_wday + 1);
     data[4] = dec_to_bcd(time->tm_mday);
     data[5] = dec_to_bcd(time->tm_mon + 1);
@@ -154,33 +191,33 @@ bool ds3231_set_alarm(h_ds3231 device, uint8_t alarms, struct tm *time1,
     if (alarms != DS3231_ALARM_2) {
         data[i++] = (option1 >= DS3231_ALARM1_MATCH_SEC ?
         		dec_to_bcd(time1->tm_sec) :
-				DS3231_ALARM_NOTSET_FLAG);
+				DS3231_ALARM_MATCH_FLAG);
         data[i++] = (option1 >= DS3231_ALARM1_MATCH_SECMIN ?
         		dec_to_bcd(time1->tm_min) :
-				DS3231_ALARM_NOTSET_FLAG);
+				DS3231_ALARM_MATCH_FLAG);
         data[i++] = (option1 >= DS3231_ALARM1_MATCH_SECMINHOUR ?
         		dec_to_bcd(time1->tm_hour) :
-				DS3231_ALARM_NOTSET_FLAG);
+				DS3231_ALARM_MATCH_FLAG);
         data[i++] = (option1 == DS3231_ALARM1_MATCH_SECMINHOURDAY ?
         		(dec_to_bcd(time1->tm_wday + 1) & DS3231_ALARM_WEEKDAY_FLAG) :
 				(option1 == DS3231_ALARM1_MATCH_SECMINHOURDATE ?
 						dec_to_bcd(time1->tm_mday) :
-						DS3231_ALARM_NOTSET_FLAG));
+						DS3231_ALARM_MATCH_FLAG));
     }
 
     /* alarm 2 data */
     if (alarms != DS3231_ALARM_1) {
         data[i++] = (option2 >= DS3231_ALARM2_MATCH_MIN ?
         		dec_to_bcd(time2->tm_min) :
-				DS3231_ALARM_NOTSET_FLAG);
+				DS3231_ALARM_MATCH_FLAG);
         data[i++] = (option2 >= DS3231_ALARM2_MATCH_MINHOUR ?
         		dec_to_bcd(time2->tm_hour) :
-				DS3231_ALARM_NOTSET_FLAG);
+				DS3231_ALARM_MATCH_FLAG);
         data[i++] = (option2 == DS3231_ALARM2_MATCH_MINHOURDAY ?
         		(dec_to_bcd(time2->tm_wday + 1) & DS3231_ALARM_WEEKDAY_FLAG) :
 				(option2 == DS3231_ALARM2_MATCH_MINHOURDATE ?
 						dec_to_bcd(time2->tm_mday) :
-						DS3231_ALARM_NOTSET_FLAG));
+						DS3231_ALARM_MATCH_FLAG));
     }
 
     return ds3231_reg_set(d,
@@ -252,7 +289,7 @@ bool ds3231_setSquarewaveFreq(uint8_t freq)
 {
     uint8_t flag = 0;
 
-    if (ds3231_getFlag(DS3231_REG_CONTROL, 0xff, &flag)) {
+    if (ds3231_flag_get(DS3231_REG_CONTROL, 0xff, &flag)) {
         /* clear current rate */
         flag &= ~DS3231_CONTROL_SQW_8192HZ;
         /* set new rate */
@@ -300,25 +337,16 @@ bool ds3231_getTempFloat(float *temp)
     return false;
 }
 
-/*
- * Convert normal decimal to binary coded decimal
- */
 uint8_t ICACHE_FLASH_ATTR dec_to_bcd(uint8_t dec)
 {
     return(((dec / 10) * 16) + (dec % 10));
 }
 
-/*
- * Convert binary coded decimal to normal decimal
- */
 uint8_t ICACHE_FLASH_ATTR bcd_to_dec(uint8_t bcd)
 {
     return(((bcd / 16) * 10) + (bcd % 16));
 }
 
-/* Read a number of bytes from the RTC over i2c
- * returns true to indicate success
- */
 bool ICACHE_FLASH_ATTR ds3231_reg_get(ds3231_device_t * device, uint8_t reg,
 		uint8_t *pData, uint32_t length)
 {
@@ -372,9 +400,6 @@ bool ICACHE_FLASH_ATTR ds3231_reg_get(ds3231_device_t * device, uint8_t reg,
 	return result;
 }
 
-/* Send a number of bytes to the RTC over i2c
- * returns true to indicate success
- */
 bool ICACHE_FLASH_ATTR ds3231_reg_set(ds3231_device_t * device, uint8_t reg,
 		uint8_t * pData, uint32_t length)
 {
@@ -414,13 +439,6 @@ bool ICACHE_FLASH_ATTR ds3231_reg_set(ds3231_device_t * device, uint8_t reg,
 	return result;
 }
 
-/* Get a byte containing just the requested bits
- * pass the register address to read, a mask to apply to the register and
- * an uint* for the output
- * you can test this value directly as true/false for specific bit mask
- * of use a mask of 0xff to just return the whole register byte
- * returns true to indicate success
- */
 bool ICACHE_FLASH_ATTR ds3231_flag_get(ds3231_device_t * device,
 		uint8_t reg, uint8_t mask, uint8_t *flag)
 {
@@ -436,12 +454,6 @@ bool ICACHE_FLASH_ATTR ds3231_flag_get(ds3231_device_t * device,
     return false;
 }
 
-/* Set/clear bits in a byte register, or replace the byte altogether
- * pass the register address to modify, a byte to replace the existing
- * value with or containing the bits to set/clear and one of
- * DS3231_SET/DS3231_CLEAR/DS3231_REPLACE
- * returns true to indicate success
- */
 bool ICACHE_FLASH_ATTR ds3231_flag_set(ds3231_device_t * device,
 		uint8_t reg, uint8_t bits, uint8_t mode)
 {
