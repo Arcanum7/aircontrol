@@ -32,13 +32,20 @@
  */
 
 #include "brzo_i2c.h"
-#include "esp_system.h"
-#include "esp_libc.h"
-#include "freertos/FreeRTOS.h"
-#include "freertos/task.h"
-#include "freertos/semphr.h"
 
-#include "driver/gpio.h"
+#include <freertos/FreeRTOS.h>
+#include <freertos/task.h>
+#include <freertos/queue.h>
+#include <freertos/semphr.h>
+#include <freertos/portmacro.h>
+
+#include <driver/gpio.h>
+
+#include <esp_log.h>
+#include <esp_system.h>
+
+
+#include <driver/gpio.h>
 
 #define GPIO_PIN_ADDR(i)        (GPIO_PIN0_ADDRESS + i*4)
 
@@ -75,7 +82,7 @@ typedef struct
 	uint16_t sda_bitmask;
 	uint16_t scl_bitmask;
 	i2c_device_t * active_device;
-	xSemaphoreHandle latch;
+	SemaphoreHandle_t latch;
 	uint8_t error;
 } i2c_bus_t;
 
@@ -128,28 +135,28 @@ h_brzo_i2c_bus brzo_i2c_setup(uint32_t sda_mux, uint8_t sda_gpio,
 
 		/*
 		 * Setup maximum time a slave is allowed to stretch the clock line
-		 * fraction usec, minimal value 100 usec
+		 * fraction uSec, minimal value 100 uSec
 		 */
-//		if (system_get_cpu_freq() == 160)
-//		{
-//			bus->iteration_remove_spike = 15;
-//			if (clk_stretch < 100)
-//				bus->clk_stretch = 730;
-//			else
-//				bus->clk_stretch = 730 * clk_stretch / 100;
-//		}
-//		else
-//		{
+		if (system_get_cpu_freq() == 160)
+		{
+			bus->iteration_remove_spike = 15;
+			if (clk_stretch < 100)
+				bus->clk_stretch = 730;
+			else
+				bus->clk_stretch = 730 * clk_stretch / 100;
+		}
+		else
+		{
 			// 80 MHz
 			bus->iteration_remove_spike = 7;
 			if (clk_stretch < 100)
 				bus->clk_stretch = 470;
 			else
 				bus->clk_stretch = 470 * clk_stretch / 100;
-//		}
+		}
 
 		/*
-		 * Allocate mutext for I2C bus latch
+		 * Allocate mutex for I2C bus latch
 		 */
 		if ((bus->latch = xSemaphoreCreateMutex()) != NULL)
 		{
@@ -251,9 +258,10 @@ void brzo_i2c_free(h_brzo_i2c_bus * bus)
 	/*
 	 * TODO: Not yet implemented
 	 */
+	;
 }
 
-i2c_device_t * ICACHE_FLASH_ATTR brzo_i2c_setup_device(uint8_t address,
+i2c_device_t * brzo_i2c_setup_device(uint8_t address,
 		uint16_t frequency)
 {
 	i2c_device_t * device = NULL;
@@ -314,7 +322,7 @@ i2c_device_t * ICACHE_FLASH_ATTR brzo_i2c_setup_device(uint8_t address,
 	return NULL;
 }
 
-void ICACHE_FLASH_ATTR brzo_i2c_free_device(i2c_device_t *device)
+void brzo_i2c_free_device(i2c_device_t *device)
 {
 	/*
 	 * Free I2C device allocation
@@ -326,7 +334,7 @@ void ICACHE_FLASH_ATTR brzo_i2c_free_device(i2c_device_t *device)
 	}
 }
 
-void ICACHE_FLASH_ATTR brzo_i2c_start_transaction(h_brzo_i2c_bus bus,
+void brzo_i2c_start_transaction(h_brzo_i2c_bus bus,
 		uint8_t address, uint16_t frequency)
 {
 	/*
@@ -368,7 +376,7 @@ void ICACHE_FLASH_ATTR brzo_i2c_start_transaction(h_brzo_i2c_bus bus,
 	return;
 }
 
-uint8_t ICACHE_FLASH_ATTR brzo_i2c_end_transaction(h_brzo_i2c_bus bus)
+uint8_t brzo_i2c_end_transaction(h_brzo_i2c_bus bus)
 {
 
 	/*
@@ -402,7 +410,7 @@ uint8_t ICACHE_FLASH_ATTR brzo_i2c_end_transaction(h_brzo_i2c_bus bus)
 	return dummy;
 }
 
-void ICACHE_FLASH_ATTR brzo_i2c_write(h_brzo_i2c_bus bus, uint8_t *p_data,
+void brzo_i2c_write(h_brzo_i2c_bus bus, uint8_t *p_data,
 		uint32_t length,
 		bool repeated)
 {
@@ -892,7 +900,7 @@ void ICACHE_FLASH_ATTR brzo_i2c_write(h_brzo_i2c_bus bus, uint8_t *p_data,
 	return;
 }
 
-void ICACHE_FLASH_ATTR brzo_i2c_read(h_brzo_i2c_bus bus, uint8_t *p_data,
+void brzo_i2c_read(h_brzo_i2c_bus bus, uint8_t *p_data,
 		uint32_t length,
 		bool repeated)
 {
@@ -1349,7 +1357,7 @@ void ICACHE_FLASH_ATTR brzo_i2c_read(h_brzo_i2c_bus bus, uint8_t *p_data,
 			 */
 			"BEQZ   %[r_repeated], l_send_stop_r;"
 			/*
-			 * Prepere for repeated start, i.e. finish the 9th cycle by setting
+			 * Prepare for repeated start, i.e. finish the 9th cycle by setting
 			 * SCL = 0 leave SDA = 1
 			 * And start the first half cycle of the 10th cycle
 			 */
@@ -1453,7 +1461,7 @@ void ICACHE_FLASH_ATTR brzo_i2c_read(h_brzo_i2c_bus bus, uint8_t *p_data,
 	return;
 }
 
-void ICACHE_FLASH_ATTR brzo_i2c_ack_polling(h_brzo_i2c_bus bus,
+void brzo_i2c_ack_polling(h_brzo_i2c_bus bus,
 		uint16_t timeout)
 {
 	/*

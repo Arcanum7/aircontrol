@@ -11,6 +11,9 @@
 #include "esp_system.h"
 #include "esp_types.h"
 #include "esp_wifi.h"
+#ifndef CONFIG_LOG_DEFAULT_LEVEL
+#define CONFIG_LOG_DEFAULT_LEVEL             ESP_LOG_INFO
+#endif
 #include "esp_log.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/queue.h"

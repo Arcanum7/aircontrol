@@ -86,7 +86,7 @@ bool ds3231_flag_set(ds3231_device_t * device, uint8_t reg,
 		uint8_t bits, uint8_t mode);
 
 
-h_ds3231 ICACHE_FLASH_ATTR ds3231_setup(h_brzo_i2c_bus i2c_bus,
+h_ds3231 ds3231_setup(h_brzo_i2c_bus i2c_bus,
 		uint8_t i2c_address, uint16_t i2c_frequency, uint16_t i2c_ack_timeout)
 {
 	ds3231_device_t *device = NULL;
@@ -102,7 +102,7 @@ h_ds3231 ICACHE_FLASH_ATTR ds3231_setup(h_brzo_i2c_bus i2c_bus,
 	return NULL;
 }
 
-void ICACHE_FLASH_ATTR ds3231_free(h_ds3231 device)
+void ds3231_free(h_ds3231 device)
 {
 	if (device == NULL)
 		return;
@@ -153,7 +153,7 @@ bool ds3231_get_time(h_ds3231 device, struct tm *time)
 
 }
 
-bool ICACHE_FLASH_ATTR ds3231_set_time(h_ds3231 device, struct tm *time, bool clock_12hour)
+bool ds3231_set_time(h_ds3231 device, struct tm *time)
 {
     uint8_t data[7];
 
@@ -337,17 +337,17 @@ bool ds3231_getTempFloat(float *temp)
     return false;
 }
 
-uint8_t ICACHE_FLASH_ATTR dec_to_bcd(uint8_t dec)
+uint8_t dec_to_bcd(uint8_t dec)
 {
     return(((dec / 10) * 16) + (dec % 10));
 }
 
-uint8_t ICACHE_FLASH_ATTR bcd_to_dec(uint8_t bcd)
+uint8_t bcd_to_dec(uint8_t bcd)
 {
     return(((bcd / 16) * 10) + (bcd % 16));
 }
 
-bool ICACHE_FLASH_ATTR ds3231_reg_get(ds3231_device_t * device, uint8_t reg,
+bool ds3231_reg_get(ds3231_device_t * device, uint8_t reg,
 		uint8_t *pData, uint32_t length)
 {
 	bool result = false;
@@ -400,7 +400,7 @@ bool ICACHE_FLASH_ATTR ds3231_reg_get(ds3231_device_t * device, uint8_t reg,
 	return result;
 }
 
-bool ICACHE_FLASH_ATTR ds3231_reg_set(ds3231_device_t * device, uint8_t reg,
+bool ds3231_reg_set(ds3231_device_t * device, uint8_t reg,
 		uint8_t * pData, uint32_t length)
 {
 	bool result = true;
@@ -439,7 +439,7 @@ bool ICACHE_FLASH_ATTR ds3231_reg_set(ds3231_device_t * device, uint8_t reg,
 	return result;
 }
 
-bool ICACHE_FLASH_ATTR ds3231_flag_get(ds3231_device_t * device,
+bool ds3231_flag_get(ds3231_device_t * device,
 		uint8_t reg, uint8_t mask, uint8_t *flag)
 {
     uint8_t data[1];
@@ -454,7 +454,7 @@ bool ICACHE_FLASH_ATTR ds3231_flag_get(ds3231_device_t * device,
     return false;
 }
 
-bool ICACHE_FLASH_ATTR ds3231_flag_set(ds3231_device_t * device,
+bool ds3231_flag_set(ds3231_device_t * device,
 		uint8_t reg, uint8_t bits, uint8_t mode)
 {
     uint8_t data[2];

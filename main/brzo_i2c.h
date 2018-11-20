@@ -149,7 +149,7 @@ void brzo_i2c_start_transaction(
 
 
 /**
- * @brief      Finsh current transaction with I2C slave device
+ * @brief      Finish current transaction with I2C slave device
  *
  * @param [in] bus
  *             Handler of I2C bus instance

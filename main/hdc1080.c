@@ -11,12 +11,12 @@
 #include <stddef.h>
 #include <stdbool.h>
 
-#include "esp_system.h"
-#include "esp_attr.h"
-#include "esp_libc.h"
-#include "esp_log.h"
-#include "freertos/FreeRTOS.h"
-#include "freertos/task.h"
+#include <esp_system.h>
+#include <esp_libc.h>
+#include <esp_log.h>
+#include <freertos/FreeRTOS.h>
+#include <freertos/task.h>
+#include <freertos/portmacro.h>
 
 #include "brzo_i2c.h"
 #include "hdc1080.h"
@@ -44,7 +44,7 @@ typedef union
 	uint16_t raw;
 } buff_uint16_t;
 
-h_hdc1080 ICACHE_FLASH_ATTR hdc1080_setup(h_brzo_i2c_bus i2c_bus,
+h_hdc1080 hdc1080_setup(h_brzo_i2c_bus i2c_bus,
 		uint8_t i2c_address, uint16_t i2c_frequency, uint16_t i2c_ack_timeout)
 {
 	hdc1080_device_t *sensor = NULL;
@@ -76,7 +76,7 @@ h_hdc1080 ICACHE_FLASH_ATTR hdc1080_setup(h_brzo_i2c_bus i2c_bus,
 	return NULL;
 }
 
-void ICACHE_FLASH_ATTR hdc1080_free(h_hdc1080 sensor)
+void hdc1080_free(h_hdc1080 sensor)
 {
 	if (sensor == NULL)
 		return;
@@ -86,7 +86,7 @@ void ICACHE_FLASH_ATTR hdc1080_free(h_hdc1080 sensor)
 	os_free(s);
 }
 
-bool ICACHE_FLASH_ATTR hdc1080_get_reg(h_hdc1080 sensor, uint8_t reg,
+bool hdc1080_get_reg(h_hdc1080 sensor, uint8_t reg,
 		uint16_t *pData)
 {
 	bool result = false;
@@ -140,7 +140,7 @@ bool ICACHE_FLASH_ATTR hdc1080_get_reg(h_hdc1080 sensor, uint8_t reg,
 	return result;
 }
 
-bool ICACHE_FLASH_ATTR hdc1080_set_reg(h_hdc1080 sensor, uint8_t reg,
+bool hdc1080_set_reg(h_hdc1080 sensor, uint8_t reg,
 		uint16_t data)
 {
 	bool result = true;
@@ -183,7 +183,7 @@ bool ICACHE_FLASH_ATTR hdc1080_set_reg(h_hdc1080 sensor, uint8_t reg,
 	return result;
 }
 
-bool ICACHE_FLASH_ATTR hdc1080_get_status(h_hdc1080 sensor, uint16_t *p_data)
+bool hdc1080_get_status(h_hdc1080 sensor, uint16_t *p_data)
 {
 	uint16_t buff;
 
@@ -195,7 +195,7 @@ bool ICACHE_FLASH_ATTR hdc1080_get_status(h_hdc1080 sensor, uint16_t *p_data)
 	return result;
 }
 
-bool ICACHE_FLASH_ATTR hdc1080_set_config(h_hdc1080 sensor, uint16_t data)
+bool hdc1080_set_config(h_hdc1080 sensor, uint16_t data)
 {
 	if (sensor == NULL)
 		return false;
@@ -205,7 +205,7 @@ bool ICACHE_FLASH_ATTR hdc1080_set_config(h_hdc1080 sensor, uint16_t data)
 	return result;
 }
 
-bool ICACHE_FLASH_ATTR hdc1080_get_temperature(h_hdc1080 sensor, float *p_data)
+bool hdc1080_get_temperature(h_hdc1080 sensor, float *p_data)
 {
 	bool result = false;
 	uint8_t i2c_result;
@@ -293,13 +293,13 @@ bool ICACHE_FLASH_ATTR hdc1080_get_temperature(h_hdc1080 sensor, float *p_data)
 	return result;
 }
 
-bool ICACHE_FLASH_ATTR hdc1080_get_humidity(h_hdc1080 sensor, float *pData)
+bool hdc1080_get_humidity(h_hdc1080 sensor, float *pData)
 {
 	bool result = false;
 	return result;
 }
 
-bool ICACHE_FLASH_ATTR hdc1080_get_raw(h_hdc1080 sensor, uint32_t *pData)
+bool hdc1080_get_raw(h_hdc1080 sensor, uint32_t *pData)
 {
 	bool result = false;
 	uint8_t i2c_result;
@@ -317,39 +317,31 @@ bool ICACHE_FLASH_ATTR hdc1080_get_raw(h_hdc1080 sensor, uint32_t *pData)
 	/*
 	 * Disable interrupts before transaction
 	 */
-	ESP_LOGD(__FUNCTION__, "Entering critical section");
 	taskENTER_CRITICAL();
 	/*
 	 * Start I2C transaction
 	 */
-	ESP_LOGD(__FUNCTION__, "Starting I2C transaction");
 	brzo_i2c_start_transaction(s->i2c_bus, s->i2c_address, s->i2c_frequency);
-	ESP_LOGD(__FUNCTION__, "Polling sensor acknowledgement");
 	brzo_i2c_ack_polling(s->i2c_bus, s->i2c_ack_timeout);
 	/*
 	 * Send register address
 	 */
 	buff.b[0] = HDC1080_REG_TEMPERATURE;
-	ESP_LOGD(__FUNCTION__, "Send measure command to sensor");
 	brzo_i2c_write(s->i2c_bus, buff.b, 1, false);
 	/*
 	 * End transaction
 	 */
-	ESP_LOGD(__FUNCTION__, "Finishing I2C transaction");
 	i2c_result = brzo_i2c_end_transaction(s->i2c_bus);
 	/*
 	 * Restore interrupts after transaction
 	 */
-	ESP_LOGD(__FUNCTION__, "Exit critical section");
 	taskEXIT_CRITICAL();
 
 	if (i2c_result == 0)
 	{
-		ESP_LOGD(__FUNCTION__, "Send measure command to sensor successful");
 		/*
 		 * Loop while hdc1080 data ready
 		 */
-		ESP_LOGD(__FUNCTION__, "Waiting for finish of measure");
 		uint8_t hdc1080_read_count = 0;
 		while (HDC1080_DEF_MEAS_RETRIES > hdc1080_read_count++)
 		{
@@ -360,35 +352,28 @@ bool ICACHE_FLASH_ATTR hdc1080_get_raw(h_hdc1080 sensor, uint32_t *pData)
 			/*
 			 * Disable interrupts before transaction
 			 */
-			ESP_LOGD(__FUNCTION__, "Entering critical section");
 			taskENTER_CRITICAL();
 			/*
 			 * Start I2C transaction
 			 */
-			ESP_LOGD(__FUNCTION__, "Starting I2C transaction");
 			brzo_i2c_start_transaction(s->i2c_bus, s->i2c_address,
 					s->i2c_frequency);
-			ESP_LOGD(__FUNCTION__, "Polling sensor acknowledgement");
 			brzo_i2c_ack_polling(s->i2c_bus, s->i2c_ack_timeout);
 			/*
 			 * Receive data
 			 */
-			ESP_LOGD(__FUNCTION__, "Read sensor data");
 			brzo_i2c_read(s->i2c_bus, buff.b, 4, false);
 			/*
 			 * End transaction
 			 */
-			ESP_LOGD(__FUNCTION__, "Finishing I2C transaction");
 			i2c_result = brzo_i2c_end_transaction(s->i2c_bus);
 			/*
 			 * Restore interrupts after transaction
 			 */
-			ESP_LOGD(__FUNCTION__, "Exit critical section");
 			taskEXIT_CRITICAL();
 
 			if (i2c_result == 0)
 			{
-				ESP_LOGD(__FUNCTION__, "Read data from sensor successful");
 				*pData = buff.raw;
 				result = true;
 				break;
@@ -400,8 +385,6 @@ bool ICACHE_FLASH_ATTR hdc1080_get_raw(h_hdc1080 sensor, uint32_t *pData)
 					/*
 					 * Data not ready yet
 					 */
-					ESP_LOGD(__FUNCTION__,
-							"Sensor not finished measure yet, retrying");
 					continue;
 				}
 				else
@@ -409,9 +392,6 @@ bool ICACHE_FLASH_ATTR hdc1080_get_raw(h_hdc1080 sensor, uint32_t *pData)
 					/*
 					 * Other I2C error
 					 */
-					ESP_LOGD(__FUNCTION__,
-							"Error %d when read data from sensor, exiting",
-							i2c_result);
 					break;
 				}
 			}
@@ -420,7 +400,7 @@ bool ICACHE_FLASH_ATTR hdc1080_get_raw(h_hdc1080 sensor, uint32_t *pData)
 	return result;
 }
 
-uint16_t ICACHE_FLASH_ATTR hdc1080_get_manufacturer(h_hdc1080 sensor)
+uint16_t hdc1080_get_manufacturer(h_hdc1080 sensor)
 {
 	if (sensor == NULL)
 		return 0;
@@ -428,7 +408,7 @@ uint16_t ICACHE_FLASH_ATTR hdc1080_get_manufacturer(h_hdc1080 sensor)
 	return ((hdc1080_device_t *) sensor)->id_manufacturer;
 }
 
-uint16_t ICACHE_FLASH_ATTR hdc1080_get_device(h_hdc1080 sensor)
+uint16_t hdc1080_get_device(h_hdc1080 sensor)
 {
 	if (sensor == NULL)
 		return 0;
@@ -436,7 +416,7 @@ uint16_t ICACHE_FLASH_ATTR hdc1080_get_device(h_hdc1080 sensor)
 	return ((hdc1080_device_t *) sensor)->id_device;
 }
 
-uint64_t ICACHE_FLASH_ATTR hdc1080_get_serial(h_hdc1080 sensor)
+uint64_t hdc1080_get_serial(h_hdc1080 sensor)
 {
 	if (sensor == NULL)
 		return 0;
