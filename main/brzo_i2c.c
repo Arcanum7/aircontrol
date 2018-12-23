@@ -33,6 +33,10 @@
 
 #include "brzo_i2c.h"
 
+#include <esp_system.h>
+#include <esp_libc.h>
+#include <esp_log.h>
+
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
 #include <freertos/queue.h>
@@ -40,9 +44,6 @@
 #include <freertos/portmacro.h>
 
 #include <driver/gpio.h>
-
-#include <esp_log.h>
-#include <esp_system.h>
 
 
 #include <driver/gpio.h>

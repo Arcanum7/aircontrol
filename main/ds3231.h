@@ -280,17 +280,7 @@ extern "C"
 #define DS3231_ALARM_MATCH_FLAG             0x80
 #define DS3231_ALARM_MATCH_MASK             DS3231_ALARM_MATCH_FLAG
 
-enum
-{
-	DS3231_SET = 0, DS3231_CLEAR, DS3231_REPLACE
-};
-
-enum
-{
-	DS3231_ALARM_NONE = 0, DS3231_ALARM_1, DS3231_ALARM_2, DS3231_ALARM_BOTH
-};
-
-enum
+typedef enum
 {
 	DS3231_ALARM1_EVERY_SEC = 0,
 	DS3231_ALARM1_MATCH_SEC,
@@ -298,16 +288,16 @@ enum
 	DS3231_ALARM1_MATCH_SECMINHOUR,
 	DS3231_ALARM1_MATCH_SECMINHOURDAY,
 	DS3231_ALARM1_MATCH_SECMINHOURDATE
-};
+} ds3231_alarm1_rate_t;
 
-enum
+typedef enum
 {
 	DS3231_ALARM2_EVERY_MIN = 0,
 	DS3231_ALARM2_MATCH_MIN,
 	DS3231_ALARM2_MATCH_MINHOUR,
 	DS3231_ALARM2_MATCH_MINHOURDAY,
 	DS3231_ALARM2_MATCH_MINHOURDATE
-};
+} ds3231_alarm2_rate_t;
 
 /*
  * Sensor instance handler
@@ -342,6 +332,73 @@ h_ds3231 ds3231_setup(h_brzo_i2c_bus i2c_bus, uint8_t i2c_address,
  */
 void ds3231_free(h_ds3231 device);
 
+/*
+ * @brief       Get raw data
+ *
+ * Read length raw bytes from point registers
+ *
+ * @param  [in] device
+ *              Handler of DS3231 RTC I2C slave device instance
+ * @param  [in] reg
+ *              Register address to start read data
+ * @param [out] p_buff
+ *              Buffer to receive data
+ * @param  [in] length
+ *              Count of bytes to read
+ *
+ * @return      TRUE if read success, FALSE if read fails.
+ */
+bool ds3231_get_raw(h_ds3231 device, uint8_t reg, uint8_t * p_buff, uint8_t length);
+
+/*
+ * @brief       Set raw data
+ *
+ * @param  [in] device
+ *              Handler of DS3231 RTC I2C slave device instance
+ * @param  [in] reg
+ *              Register address to start write data
+ * @param [out] p_buff
+ *              Buffer to data to writen
+ * @param  [in] length
+ *              Count of bytes to write
+ *
+ * @return      TRUE if read success, FALSE if read fails.
+ */
+bool ds3231_set_raw(h_ds3231 device, uint8_t reg, uint8_t * p_buff, uint8_t length);
+
+/**
+ * @brief       Get one bit value from desired register
+ *
+ * @param  [in] device
+ *              Handler of DS3231 RTC I2C slave device instance
+ * @param  [in] reg
+ *              Register address
+ * @param  [in] bitmask
+ *              Single bit mask
+ * @param [out] value
+ *              Value to return [0,1]
+ *
+ * @return      TRUE if read success, FALSE if read fails.
+ */
+bool ds3231_get_bit(h_ds3231 device, uint8_t reg, uint8_t bitmask,
+		uint8_t * value);
+
+/**
+ * @brief       Set one bit value to desired register
+ *
+ * @param  [in] device
+ *              Handler of DS3231 RTC I2C slave device instance
+ * @param  [in] reg
+ *              Register address
+ * @param  [in] bitmask
+ *              Single bit mask
+ * @param [out] value
+ *              Value to set [0,1]
+ *
+ * @return      TRUE if read success, FALSE if read fails.
+ */
+bool ds3231_set_bit(h_ds3231 device, uint8_t reg, uint8_t bit, uint8_t value);
+
 /**
  * @brief       Get the time from the RTC, populates a supplied tm structure
  *
@@ -370,19 +427,8 @@ bool ds3231_get_time(h_ds3231 device, struct tm *time);
  */
 bool ds3231_set_time(h_ds3231 device, struct tm *time);
 
-/* Set alarms
- * alarm1 works with seconds, minutes, hours and day of week/month, or fires every second
- * alarm2 works with minutes, hours and day of week/month, or fires every minute
- * not all combinations are supported, see DS3231_ALARM1_* and DS3231_ALARM2_* defines
- * for valid options you only need to populate the fields you are using in the tm struct,
- * and you can set both alarms at the same time (pass DS3231_ALARM_1/DS3231_ALARM_2/DS3231_ALARM_BOTH)
- * if only setting one alarm just pass 0 for tm struct and option field for the other alarm
- * if using DS3231_ALARM1_EVERY_SECOND/DS3231_ALARM2_EVERY_MIN you can pass 0 for tm stuct
- * if you want to enable interrupts for the alarms you need to do that separately
- * returns true to indicate success
- */
 /**
- * @brief       Set the time on the DS3231 RTC
+ * @brief       Set and enable or disable alarm1 timer
  *
  *              timezone agnostic, pass whatever you like
  *              I suggest using GMT and applying timezone and
@@ -390,93 +436,30 @@ bool ds3231_set_time(h_ds3231 device, struct tm *time);
  *
  * @param  [in] device
  *              Handler of DS3231 RTC I2C slave device instance
- * @param [out] time
+ * @param  [in] time
+ *              Pointer to tm structure, if NULL alarm will be disabled
+ * @param  [in] rate
  *              Pointer to tm structure
  *
- * @return      TRUE if read success, FALSE if read fails.
+ * @return      TRUE if operation success, FALSE if fails.
  */
-bool ds3231_set_alarm(h_ds3231 device, uint8_t alarms, struct tm *time1,
-		uint8_t option1, struct tm *time2, uint8_t option2);
+bool ds3231_set_alarm1(h_ds3231 device, struct tm * time,
+		ds3231_alarm1_rate_t rate);
 
-/* Check if oscillator has previously stopped, e.g. no power/battery or disabled
- * sets flag to true if there has been a stop
- * returns true to indicate success
+/**
+ * @brief       Set and enable or disable alarm2 timer
+ *
+ * @param  [in] device
+ *              Handler of DS3231 RTC I2C slave device instance
+ * @param  [in] time
+ *              Pointer to tm structure, if NULL alarm will be disabled
+ * @param  [in] rate
+ *              Pointer to tm structure
+ *
+ * @return      TRUE if operation success, FALSE if fails.
  */
-bool ds3231_getOscillatorStopFlag(bool *flag);
-
-/* Clear the oscillator stopped flag
- * returns true to indicate success
- */
-bool ds3231_clearOscillatorStopFlag();
-
-/* Check which alarm(s) have past
- * sets alarms to DS3231_ALARM_NONE/DS3231_ALARM_1/DS3231_ALARM_2/DS3231_ALARM_BOTH
- * returns true to indicate success
- */
-bool ds3231_getAlarmFlags(uint8_t *alarms);
-
-/* Clear alarm past flag(s)
- * pass DS3231_ALARM_1/DS3231_ALARM_2/DS3231_ALARM_BOTH
- * returns true to indicate success
- */
-bool ds3231_clearAlarmFlags(uint8_t alarm);
-
-/* enable alarm interrupts (and disables squarewave)
- * pass DS3231_ALARM_1/DS3231_ALARM_2/DS3231_ALARM_BOTH
- * if you set only one alarm the status of the other is not changed
- * you must also clear any alarm past flag(s) for alarms with
- * interrupt enabled, else it will trigger immediately
- * returns true to indicate success
- */
-bool ds3231_enableAlarmInts(uint8_t alarms);
-
-/* Disable alarm interrupts (does not (re-)enable squarewave)
- * pass DS3231_ALARM_1/DS3231_ALARM_2/DS3231_ALARM_BOTH
- * returns true to indicate success
- */
-bool ds3231_disableAlarmInts(uint8_t alarms);
-
-/* Enable the output of 32khz signal
- * returns true to indicate success
- */
-bool ds3231_enable32khz();
-
-/* Disable the output of 32khz signal
- * returns true to indicate success
- */
-bool ds3231_disable32khz();
-
-/* Enable the squarewave output (disables alarm interrupt functionality)
- * returns true to indicate success
- */
-bool ds3231_enableSquarewave();
-
-/* Disable the squarewave output (which re-enables alarm interrupts, but individual
- * alarm interrupts also need to be enabled, if not already, before they will trigger)
- * returns true to indicate success
- */
-bool ds3231_disableSquarewave();
-
-/* Set the frequency of the squarewave output (but does not enable it)
- * pass DS3231_SQUAREWAVE_RATE_1HZ/DS3231_SQUAREWAVE_RATE_1024HZ/DS3231_SQUAREWAVE_RATE_4096HZ/DS3231_SQUAREWAVE_RATE_8192HZ
- * returns true to indicate success
- */
-bool ds3231_setSquarewaveFreq(uint8_t freq);
-
-/* Get the raw value
- * returns true to indicate success
- */
-bool ds3231_getRawTemp(int16_t *temp);
-
-/* Get the temperature as an integer
- * returns true to indicate success
- */
-bool ds3231_getTempInteger(int8_t *temp);
-
-/* Get the temerapture as a float (in quarter degree increments)
- * returns true to indicate success
- */
-bool ds3231_getTempFloat(float *temp);
+bool ds3231_set_alarm2(h_ds3231 device, struct tm * time,
+		ds3231_alarm2_rate_t rate);
 
 #ifdef	__cplusplus
 }
