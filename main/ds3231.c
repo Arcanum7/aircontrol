@@ -486,7 +486,6 @@ bool ds3231_set_alarm2(h_ds3231 device, struct tm * time,
     uint8_t data[3] = {
     		DS3231_ALARM_MATCH_FLAG, DS3231_ALARM_MATCH_FLAG,
 			DS3231_ALARM_MATCH_FLAG };
-    uint8_t i = 0;
 
     if (device == NULL)
 		return false;
@@ -517,7 +516,7 @@ bool ds3231_set_alarm2(h_ds3231 device, struct tm * time,
 		if (ds3231_set_raw(d, DS3231_REG_ALARM2, data, 3))
 		{
 			/*
-			 * Set alarm ineterrupt bit
+			 * Set alarm interrupt bit
 			 */
 			if (ds3231_set_bit(d, DS3231_REG_CONTROL, DS3231_CONTROL_A2IE, 1))
 				return true;
